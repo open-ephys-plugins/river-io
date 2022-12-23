@@ -27,54 +27,81 @@
 #include <ProcessorHeaders.h>
 #include "river/river.h"
 
-class RiverWriterThread : public juce::Thread {
+
+/** 
+
+    Writes data to the Redis database inside a thread
+
+*/
+class RiverWriterThread : public Thread 
+{
 public:
-    RiverWriterThread(const std::shared_ptr<river::StreamWriter> &writer,
+
+    /** Constructor */
+    RiverWriterThread(const std::shared_ptr<river::StreamWriter>& writer,
                       int capacity_samples,
                       int batch_period_ms);
+
+	/** Destructor */
     ~RiverWriterThread() override = default;
 
+    /** Run thread */
     void run() override;
 
+    /** Adds bytes to the writing queue */
     void enqueue(const char *data, int num_samples);
+
 private:
+    
     std::unique_ptr<AbstractFifo> writing_queue_;
+    
     std::vector<char> buffer_;
+    
     int batch_period_ms_;
     int sample_size_;
+    
     std::shared_ptr<river::StreamWriter> writer_;
 };
 
 /**
- *  TODO
+ *  A sink that writes spikes and events to a Redis database,
+ *  using the River library.
+ * 
+ * 
     @see GenericProcessor
  */
 class RiverOutput : public GenericProcessor
 {
 public:
+    /** Constructor */
     RiverOutput();
 
+    /** Destructor */
     ~RiverOutput() override = default;
 
     /** Searches for events and triggers the River output when appropriate. */
     void process(AudioSampleBuffer &buffer) override;
 
-    //void handleSpike(const SpikeChannel *spikeInfo, const MidiMessage &event, int samplePosition) override;
-   // void handleEvent(const EventChannel* eventInfo, const MidiMessage& event, int samplePosition) override;
+    /** Copies a spike into the output buffer */
+    void handleSpike(SpikePtr spike) override;
+   
+    /** Copies a TTL event into the output buffer*/
+    void handleTTLEvent(TTLEventPtr event) override;
 
     /** Called immediately prior to the start of data acquisition. */
-    //bool enable() override;
+    bool startAcquisition() override;
 
     /** Called immediately after the end of data acquisition. */
-    //bool disable() override;
+    bool stopAcquisition() override;
 
     /** Creates the RiverOutputEditor. */
     AudioProcessorEditor *createEditor() override;
 
-    /** To/from conversion XML */
-    void saveCustomParametersToXml (XmlElement* parentElement) override;
-    /** Load custom settings from XML*/
-    //void loadCustomParametersFromXml() override;
+    /** Convert parameters to XML */
+    void saveCustomParametersToXml (XmlElement* xml) override;
+    
+    /** Load custom parameters from XML*/
+    void loadCustomParametersFromXml(XmlElement* xml) override;
 
     // Parameter::Listener
     //void parameterValueChanged(Value &valueThatWasChanged, const String &parameterName) override;
@@ -121,27 +148,9 @@ private:
     typedef struct RiverSpike {
         int32_t channel_index;
         int32_t unit_index;
-        int64_t data_index;
-        // Hackyyyyy
-        float pc_score_0;
-        float pc_score_1;
-        float pc_score_2;
-        float pc_score_3;
-        float pc_score_4;
-        float pc_score_5;
-        float pc_score_6;
-        float pc_score_7;
-        float pc_score_8;
-        float pc_score_9;
-        float pc_score_10;
-        float pc_score_11;
-        float pc_score_12;
-        float pc_score_13;
-        float pc_score_14;
-
-        // Set to all zeros if not present.
-        char token[8];
-    }; // __attribute__((__packed__)) RiverSpike;
+        int64_t sample_number;
+    } __attribute__((__packed__)) RiverSpike;
+    
     const river::StreamSchema spike_schema_;
 
     // If this is set, then we should listen to events, not spikes.
@@ -150,10 +159,7 @@ private:
     std::shared_ptr<river::StreamWriter> writer_;
     std::unique_ptr<RiverWriterThread> writing_thread_;
 
-    // Access this via method instead of raw
-    Parameter *stream_name_;
-    Parameter *channel_mapping_json_;
-    std::unordered_map<int, int> channel_mapping_;
+    std::string stream_name;
 
     std::string redis_connection_hostname_;
     int redis_connection_port_;

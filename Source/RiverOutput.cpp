@@ -31,38 +31,18 @@ using json = nlohmann::json;
 
 RiverOutput::RiverOutput()
         : GenericProcessor("River Output"),
+    
           spike_schema_({river::FieldDefinition("channel_index", river::FieldDefinition::INT32, 4),
                          river::FieldDefinition("unit_index", river::FieldDefinition::INT32, 4),
-                         river::FieldDefinition("data_index", river::FieldDefinition::INT64, 8),
-                         river::FieldDefinition("pc_score_0", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_1", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_2", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_3", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_4", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_5", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_6", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_7", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_8", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_9", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_10", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_11", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_12", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_13", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("pc_score_14", river::FieldDefinition::FLOAT, 4),
-                         river::FieldDefinition("token", river::FieldDefinition::FIXED_WIDTH_BYTES, 8),
-              }) {
+                         river::FieldDefinition("sample_number", river::FieldDefinition::INT64, 8)
+              }) 
+{
 
     // Start with some sane defaults.
     redis_connection_hostname_ = "127.0.0.1";
     redis_connection_port_ = 6379;
 
-    //stream_name_ = new Parameter("stream_name", juce::String(""), 0, true);
-    //stream_name_->addListener(this);
-    //parameters.add(stream_name_);
-
-    //channel_mapping_json_ = new Parameter("channel_mapping_json", juce::String(""), 0, true);
-    //channel_mapping_json_->addListener(this);
-    //parameters.add(channel_mapping_json_);
+    stream_name = "Test-100";
 
     // Give some defaults
     writer_max_latency_ms_ = 5;
@@ -76,59 +56,26 @@ AudioProcessorEditor *RiverOutput::createEditor() {
 }
 
 
-/*void RiverOutput::handleSpike(const SpikeChannel* spikeInfo, const MidiMessage& event, int) {
-    SpikeEventPtr spike = SpikeEvent::deserializeFromMessage(event, spikeInfo);
-    if (!spike) {
-        return;
-    }
-
-    jassert(spike->getMetadataValueCount() == 2);
-    juce::String spike_token;
-    spike->getMetaDataValue(1)->getValue(spike_token);
+void RiverOutput::handleSpike(SpikePtr spike) 
+{
     
     RiverSpike river_spike;
-    int channel_index = getSpikeChannelIndex(spike);
-    if (channel_mapping_.find(channel_index) != channel_mapping_.end()) {
-        channel_index = channel_mapping_[channel_index];
-    }
+    int channel_index = spike->getChannelIndex();
+    
     river_spike.channel_index = channel_index;
-    river_spike.data_index = spike->getTimestamp();
-    river_spike.unit_index = ((int) spike->getSortedID()) - 1;
-
-    // Yeah.... hacky.
-    river_spike.pc_score_0 = spike->getPcProjPointer()[0];
-    river_spike.pc_score_1 = spike->getPcProjPointer()[1];
-    river_spike.pc_score_2 = spike->getPcProjPointer()[2];
-    river_spike.pc_score_3 = spike->getPcProjPointer()[3];
-    river_spike.pc_score_4 = spike->getPcProjPointer()[4];
-    river_spike.pc_score_5 = spike->getPcProjPointer()[5];
-    river_spike.pc_score_6 = spike->getPcProjPointer()[6];
-    river_spike.pc_score_7 = spike->getPcProjPointer()[7];
-    river_spike.pc_score_8 = spike->getPcProjPointer()[8];
-    river_spike.pc_score_9 = spike->getPcProjPointer()[9];
-    river_spike.pc_score_10 = spike->getPcProjPointer()[10];
-    river_spike.pc_score_11 = spike->getPcProjPointer()[11];
-    river_spike.pc_score_12 = spike->getPcProjPointer()[12];
-    river_spike.pc_score_13 = spike->getPcProjPointer()[13];
-    river_spike.pc_score_14 = spike->getPcProjPointer()[14];
-
-    jassert(spike_token.length() == 8);
-    memcpy(river_spike.token, spike_token.getCharPointer(), 8);
+    river_spike.sample_number = spike->getSampleNumber();
+    river_spike.unit_index = spike->getSortedId();
 
     if (writing_thread_) {
         writing_thread_->enqueue(reinterpret_cast<const char *>(&river_spike), 1);
     } else {
         writer_->WriteBytes(reinterpret_cast<const char *>(&river_spike), 1);
     }
-}*/
+}
 
-/*void RiverOutput::handleEvent(const EventChannel* eventInfo, const MidiMessage& msg, int) {
-    BinaryEventPtr event = BinaryEvent::deserializeFromMessage(msg, eventInfo);
-    if (!event) {
-        return;
-    }
-
-    const char *ptr = (const char *) event->getBinaryDataPointer();
+void RiverOutput::handleTTLEvent(TTLEventPtr event) 
+{
+    /*const char* ptr = (const char*)event->getBinaryDataPointer();
     size_t data_size = eventInfo->getDataSize();
 
     // Assert (when compiled in debug) that the sizes match up.
@@ -139,10 +86,11 @@ AudioProcessorEditor *RiverOutput::createEditor() {
         writing_thread_->enqueue(ptr, 1);
     } else {
         writer_->WriteBytes(ptr, 1);
-    }
+    }*/
 }
 
-void RiverOutput::parameterValueChanged(Value &valueThatWasChanged, const String &parameterName) {
+/*void RiverOutput::parameterValueChanged(Value& valueThatWasChanged, const String& parameterName)
+{
     if (parameterName == "stream_name") {
         if (editor) {
             // We already use the Parameter as source of truth for the rest so just ping the editor
@@ -172,13 +120,17 @@ void RiverOutput::parameterValueChanged(Value &valueThatWasChanged, const String
     }
 }*/
 
-/*bool RiverOutput::enable() {
+bool RiverOutput::startAcquisition() 
+{
     auto sn = streamName();
     if (sn.empty() || redis_connection_hostname_.empty() || redis_connection_port_ <= 0) {
         CoreServices::sendStatusMessage("FAILED TO ENABLE");
         return false;
     }
 
+    //if (writer_ != nullptr)
+    //    return false;
+    
     jassert(!writer_);
 
     river::RedisConnection connection(
@@ -186,14 +138,20 @@ void RiverOutput::parameterValueChanged(Value &valueThatWasChanged, const String
             redis_connection_port_,
             redis_connection_password_);
 
+    LOGD("River Output Connection: ", redis_connection_hostname_, ":", redis_connection_port_);
+
     // TODO: what happens if invalid redis connection?
     writer_ = std::make_shared<river::StreamWriter>(connection);
 
+    LOGD("Created StreamWriter.");
+
     std::unordered_map<std::string, std::string> metadata;
-    if (shouldConsumeSpikes()) {
-        if (getTotalSpikeChannels() == 0) {
+    
+    if (shouldConsumeSpikes()) 
+    {
+        if (spikeChannels.size() == 0) {
             // Can't consume spikes if there are no spike channels.
-            CoreServices::sendStatusMessage("FAILED TO ENABLE: NO SPIKES");
+            CoreServices::sendStatusMessage("River Output has no spike channels.");
             return false;
         }
 
@@ -204,6 +162,7 @@ void RiverOutput::parameterValueChanged(Value &valueThatWasChanged, const String
         metadata["sampling_rate"] = std::to_string(CoreServices::getGlobalSampleRate());
     }
 
+    LOGD("Initialized StreamWriter.");
     writer_->Initialize(sn, getSchema(), metadata);
 
     if (editor) {
@@ -221,10 +180,11 @@ void RiverOutput::parameterValueChanged(Value &valueThatWasChanged, const String
     }
 
     return true;
-}*/
+}
 
 
-/*bool RiverOutput::disable() {
+bool RiverOutput::stopAcquisition() 
+{
     if (writing_thread_) {
         writing_thread_->stopThread(1000);
         writing_thread_.reset();
@@ -234,17 +194,18 @@ void RiverOutput::parameterValueChanged(Value &valueThatWasChanged, const String
         writer_.reset();
     }
     return true;
-}*/
+}
 
 
-void RiverOutput::process(AudioSampleBuffer &buffer) {
+void RiverOutput::process(AudioSampleBuffer &buffer) 
+{
     if (writer_) {
         checkForEvents(shouldConsumeSpikes());
     }
 }
 
 std::string RiverOutput::streamName() const {
-    return "Default"; // stream_name_->getValue(0).toString().toStdString();
+    return stream_name;
 }
 
 int64_t RiverOutput::totalSamplesWritten() const {
@@ -293,12 +254,9 @@ void RiverOutput::saveCustomParametersToXml(XmlElement *parentElement) {
     }
 }
 
-/*void RiverOutput::loadCustomParametersFromXml() {
-    if (parametersAsXml == nullptr) {
-        return;
-    }
+void RiverOutput::loadCustomParametersFromXml(XmlElement* xml) {
 
-    forEachXmlChildElement(*parametersAsXml, mainNode) {
+    forEachXmlChildElement(*xml, mainNode) {
         if (!mainNode->hasTagName("RiverOutput")) {
             continue;
         }
@@ -330,7 +288,7 @@ void RiverOutput::saveCustomParametersToXml(XmlElement *parentElement) {
 
     ((RiverOutputEditor *) editor.get())->refreshSchemaFromProcessor();
     ((RiverOutputEditor *) editor.get())->refreshLabelsFromProcessor();
-}*/
+}
 
 void RiverOutput::setEventSchema(const river::StreamSchema& eventSchema) {
     auto p = std::make_shared<river::StreamSchema>(eventSchema);

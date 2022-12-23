@@ -308,7 +308,8 @@ void RiverOutputEditor::labelTextChanged(Label *label) {
     }
 }
 
-void RiverOutputEditor::refreshLabelsFromProcessor() {
+void RiverOutputEditor::refreshLabelsFromProcessor() 
+{
     auto river = (RiverOutput *) getProcessor();
     lastPortValue = std::to_string(river->redisConnectionPort());
 
@@ -350,10 +351,8 @@ RiverOutputCanvas::RiverOutputCanvas(GenericProcessor *n) : processor(n) {
     refreshRate = 4;
 }
 
-void RiverOutputCanvas::refreshState() {}
-void RiverOutputCanvas::update() {}
-
-void RiverOutputCanvas::refresh() {
+void RiverOutputCanvas::refresh() 
+{
     editor->refreshLabelsFromProcessor();
     editor->repaint();
 }
@@ -364,9 +363,6 @@ void RiverOutputCanvas::beginAnimation() {
 void RiverOutputCanvas::endAnimation() {
     stopCallbacks();
 }
-
-//void RiverOutputCanvas::setParameter(int, float) {}
-//void RiverOutputCanvas::setParameter(int, int, int, float) {}
 
 void RiverOutputCanvas::paint(Graphics &g) {
     ColourGradient editorBg = editor->getBackgroundGradient();

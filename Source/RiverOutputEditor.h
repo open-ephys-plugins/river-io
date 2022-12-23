@@ -24,7 +24,6 @@
 #ifndef __RIVEROUTPUTEDITOR_H_28EB4CC9__
 #define __RIVEROUTPUTEDITOR_H_28EB4CC9__
 
-
 #include <EditorHeaders.h>
 #include <VisualizerEditorHeaders.h>
 #include <VisualizerWindowHeaders.h>
@@ -34,7 +33,6 @@
 class ImageIcon;
 
 class RiverOutputCanvas;
-
 
 /**
 
@@ -48,22 +46,28 @@ class RiverOutputEditor : public VisualizerEditor,
 	public Button::Listener
 {
 public:
+
+    /** Constructor*/
     RiverOutputEditor(GenericProcessor *parentNode);
 
+    /** Destructor */
     ~RiverOutputEditor() override = default;
 
+    /** Create the Visualizer object*/
     Visualizer* createNewCanvas() override;
 
-    // UI listeners
+    /** UI listeners */
     void labelTextChanged(Label* label) override;
     void comboBoxChanged(ComboBox *comboBoxThatHasChanged) override;
     void buttonClicked(Button* button) override;
 
-    // Non-overrides:
+    /** Non-overrides */
     void refreshLabelsFromProcessor();
     void refreshSchemaFromProcessor();
 
-    Component *getOptionsPanel() {
+    /** Return pointer to options panel */
+    Component* getOptionsPanel() 
+    {
         return optionsPanel.get();
     }
 
@@ -116,7 +120,6 @@ private:
 
     ScopedPointer<Label> asyncLatencyMsLabel;
     ScopedPointer<Label> asyncLatencyMsLabelValue;
-
 
     Label *newStaticLabel(
             const std::string& labelText,
@@ -181,19 +184,37 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RiverOutputEditor)
 };
 
+/** 
+    Visualizer for updating additional settings
+*/
 class RiverOutputCanvas : public Visualizer {
 public:
+    
+    /** Constructor */
     explicit RiverOutputCanvas(GenericProcessor *n);
+
+    /** Destructor */
     ~RiverOutputCanvas() override = default;
 
-    void refreshState() override;
-    void update() override;
+    /** Not used */
+    void refreshState() override { }
+
+    /** Not used */
+    void update() override { }
+
+    /** Updates labels in editor */
     void refresh() override;
+
+    /** Starts animation callbacks*/
     void beginAnimation() override;
+
+    /** Stops animation callbacks*/
     void endAnimation() override;
-    //void setParameter(int, float) override;
-    //void setParameter(int, int, int, float) override;
+
+    /** Draws the background */
     void paint(Graphics& g) override;
+
+    /** Sets viewport location */
     void resized() override;
 
 private:
