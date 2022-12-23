@@ -42,11 +42,23 @@ RiverOutput::RiverOutput()
     redis_connection_hostname_ = "127.0.0.1";
     redis_connection_port_ = 6379;
 
-    stream_name = "Test-100";
+    StringArray streamNames = { "Red", "Green", "Blue", "Orange", "Pink", "Purple" };
+
+	stream_name = (streamNames[random.nextInt(streamNames.size())] + "-" + String(random.nextInt(1000))).toStdString();
 
     // Give some defaults
     writer_max_latency_ms_ = 5;
     writer_max_batch_size_ = 4096;
+}
+
+
+RiverOutput::~RiverOutput()
+{
+    if (createdWriter)
+    {
+        writer_->Stop();
+        delete writer_;
+    }
 }
 
 
@@ -89,37 +101,6 @@ void RiverOutput::handleTTLEvent(TTLEventPtr event)
     }*/
 }
 
-/*void RiverOutput::parameterValueChanged(Value& valueThatWasChanged, const String& parameterName)
-{
-    if (parameterName == "stream_name") {
-        if (editor) {
-            // We already use the Parameter as source of truth for the rest so just ping the editor
-            const MessageManagerLock mm;
-            ((RiverOutputEditor *) editor.get())->refreshLabelsFromProcessor();
-        }
-    } else if (parameterName == "channel_mapping_json") {
-        std::string json_str = channel_mapping_json_->getValue(0).toString().toStdString();
-        if (!json_str.empty()) {
-            try {
-                json j = json::parse(json_str);
-                std::unordered_map<int, int> new_map;
-                for (const auto& kv : j.items()) {
-                    int from_ch = std::stoi(kv.key());
-                    int to_ch = kv.value();
-                    std::pair<int, int> p(from_ch, to_ch);
-                    new_map.insert(p);
-                }
-                channel_mapping_ = new_map;
-            } catch (const json::exception& e) {
-                std::cout << "Failed to parse: "  << e.what() << std::endl;
-                channel_mapping_json_->setValue(valueThatWasChanged.getValue(), 0);
-            }
-        } else {
-            channel_mapping_.clear();
-        }
-    }
-}*/
-
 bool RiverOutput::startAcquisition() 
 {
     auto sn = streamName();
@@ -128,43 +109,43 @@ bool RiverOutput::startAcquisition()
         return false;
     }
 
-    //if (writer_ != nullptr)
-    //    return false;
-    
-    jassert(!writer_);
-
-    river::RedisConnection connection(
+   if (!createdWriter)
+    {
+       river::RedisConnection connection(
             redis_connection_hostname_,
             redis_connection_port_,
             redis_connection_password_);
 
-    LOGD("River Output Connection: ", redis_connection_hostname_, ":", redis_connection_port_);
+        LOGD("River Output Connection: ", redis_connection_hostname_, ":", redis_connection_port_);
 
-    // TODO: what happens if invalid redis connection?
-    writer_ = std::make_shared<river::StreamWriter>(connection);
+        // TODO: what happens if invalid redis connection?
+        writer_ = new river::StreamWriter(connection);
 
-    LOGD("Created StreamWriter.");
+        LOGD("Created StreamWriter.");
 
-    std::unordered_map<std::string, std::string> metadata;
-    
-    if (shouldConsumeSpikes()) 
-    {
-        if (spikeChannels.size() == 0) {
-            // Can't consume spikes if there are no spike channels.
-            CoreServices::sendStatusMessage("River Output has no spike channels.");
-            return false;
+
+        std::unordered_map<std::string, std::string> metadata;
+
+        if (shouldConsumeSpikes())
+        {
+            if (spikeChannels.size() == 0) {
+                // Can't consume spikes if there are no spike channels.
+                CoreServices::sendStatusMessage("River Output has no spike channels.");
+                return false;
+            }
+
+            // Assume that all spike channels have the same details.
+            auto spike_channel = getSpikeChannel(0);
+            metadata["prepeak_samples"] = std::to_string(spike_channel->getPrePeakSamples());
+            metadata["postpeak_samples"] = std::to_string(spike_channel->getPostPeakSamples());
+            metadata["sampling_rate"] = std::to_string(CoreServices::getGlobalSampleRate());
         }
 
-        // Assume that all spike channels have the same details.
-        auto spike_channel = getSpikeChannel(0);
-        metadata["prepeak_samples"] = std::to_string(spike_channel->getPrePeakSamples());
-        metadata["postpeak_samples"] = std::to_string(spike_channel->getPostPeakSamples());
-        metadata["sampling_rate"] = std::to_string(CoreServices::getGlobalSampleRate());
+       LOGD("Initialized StreamWriter.");
+       writer_->Initialize(sn, getSchema(), metadata);
+       createdWriter = true;
     }
-
-    LOGD("Initialized StreamWriter.");
-    writer_->Initialize(sn, getSchema(), metadata);
-
+        
     if (editor) {
         // GenericEditor#enable isn't marked as virtual, so need to *upcast* to VisualizerEditor :(
         ((VisualizerEditor *) (editor.get()))->enable();
@@ -189,17 +170,14 @@ bool RiverOutput::stopAcquisition()
         writing_thread_->stopThread(1000);
         writing_thread_.reset();
     }
-    if (writer_) {
-        writer_->Stop();
-        writer_.reset();
-    }
+    
     return true;
 }
 
 
 void RiverOutput::process(AudioSampleBuffer &buffer) 
 {
-    if (writer_) {
+    if (createdWriter) {
         checkForEvents(shouldConsumeSpikes());
     }
 }
@@ -209,7 +187,7 @@ std::string RiverOutput::streamName() const {
 }
 
 int64_t RiverOutput::totalSamplesWritten() const {
-    if (writer_) {
+    if (createdWriter) {
         return writer_->total_samples_written();
     } else {
         return 0;
@@ -256,7 +234,8 @@ void RiverOutput::saveCustomParametersToXml(XmlElement *parentElement) {
 
 void RiverOutput::loadCustomParametersFromXml(XmlElement* xml) {
 
-    forEachXmlChildElement(*xml, mainNode) {
+    forEachXmlChildElement(*xml, mainNode) 
+    {
         if (!mainNode->hasTagName("RiverOutput")) {
             continue;
         }
@@ -311,7 +290,7 @@ river::StreamSchema RiverOutput::getSchema() const {
 }
 
 RiverWriterThread::RiverWriterThread(
-        const std::shared_ptr<river::StreamWriter> &writer,
+        river::StreamWriter* writer,
         int capacity_samples,
         int batch_period_ms)
         : juce::Thread("RiverWriter") {

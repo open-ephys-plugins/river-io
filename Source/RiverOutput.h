@@ -38,7 +38,7 @@ class RiverWriterThread : public Thread
 public:
 
     /** Constructor */
-    RiverWriterThread(const std::shared_ptr<river::StreamWriter>& writer,
+    RiverWriterThread(river::StreamWriter* writer,
                       int capacity_samples,
                       int batch_period_ms);
 
@@ -60,7 +60,7 @@ private:
     int batch_period_ms_;
     int sample_size_;
     
-    std::shared_ptr<river::StreamWriter> writer_;
+    river::StreamWriter* writer_;
 };
 
 /**
@@ -77,7 +77,7 @@ public:
     RiverOutput();
 
     /** Destructor */
-    ~RiverOutput() override = default;
+    virtual ~RiverOutput();
 
     /** Searches for events and triggers the River output when appropriate. */
     void process(AudioSampleBuffer &buffer) override;
@@ -156,7 +156,7 @@ private:
     // If this is set, then we should listen to events, not spikes.
     std::shared_ptr<river::StreamSchema> event_schema_;
 
-    std::shared_ptr<river::StreamWriter> writer_;
+    river::StreamWriter* writer_;
     std::unique_ptr<RiverWriterThread> writing_thread_;
 
     std::string stream_name;
@@ -167,6 +167,11 @@ private:
 
     int writer_max_batch_size_;
     int writer_max_latency_ms_;
+
+    bool createdWriter = false;
+
+    Random random;
+    
 };
 
 
