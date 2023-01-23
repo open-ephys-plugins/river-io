@@ -93,7 +93,7 @@ foreach( src_file IN ITEMS ${SRC_FILES})
 endforeach()
 
 if (MSVC)
-	#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Windows/x64/ DESTINATION ${GUI_BIN_DIR}/shared FILES_MATCHING PATTERN "*.dll") 
+	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Windows/x64/ DESTINATION ${GUI_BIN_DIR}/shared FILES_MATCHING PATTERN "*.dll")
 endif()
 
 set(RIVER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Source/river)
