@@ -133,8 +133,12 @@ bool RiverOutput::startAcquisition()
 
         LOGD("River Output Connection: ", redis_connection_hostname_, ":", redis_connection_port_);
 
-        // TODO: what happens if invalid redis connection?
-        writer_ = new river::StreamWriter(connection);
+        try {
+            writer_ = new river::StreamWriter(connection);;
+        } catch (const std::exception& e) {
+            LOGC("Failed to connect to Redis: ", e.what());
+            return false;
+        }
 
         LOGD("Created StreamWriter.");
 
