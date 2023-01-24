@@ -275,10 +275,17 @@ void RiverOutputEditor::updateProcessorSchema() {
         // Clearing event schema forces use of the spike schema / spike input type.
         processor->clearEventSchema();
     } else if (inputTypeEventButton->getToggleState()) {
+        // Previously could customize event schema
+        /*
         auto field_definitions = schemaList->fieldDefinitions();
         if (!field_definitions.empty()) {
             processor->setEventSchema(river::StreamSchema(field_definitions));
         }
+        */
+        // Hardcoded schema for TTL events for now...
+        processor->setEventSchema(river::StreamSchema({river::FieldDefinition("channel_index", river::FieldDefinition::INT32, 4),
+                    river::FieldDefinition("state", river::FieldDefinition::INT32, 4),
+                    river::FieldDefinition("sample_number", river::FieldDefinition::INT64, 8)}));
     } else {
         // Can happen transiently where both are off briefly
     }

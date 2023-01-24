@@ -87,6 +87,21 @@ void RiverOutput::handleSpike(SpikePtr spike)
 
 void RiverOutput::handleTTLEvent(TTLEventPtr event) 
 {
+
+    RiverEvent river_event;
+
+    TTLEvent* ttl = static_cast<TTLEvent*>(event.get());
+
+    river_event.channel_index = event->getChannelIndex();
+    river_event.state = (ttl->getLine() + 1) * (ttl->getState() ? 1 : -1);
+    river_event.sample_number = event->getSampleNumber();
+
+    if (writing_thread_) {
+        writing_thread_->enqueue(reinterpret_cast<const char *>(&river_event), 1);
+    } else {
+        writer_->WriteBytes(reinterpret_cast<const char *>(&river_event), 1);
+    }
+
     /*const char* ptr = (const char*)event->getBinaryDataPointer();
     size_t data_size = eventInfo->getDataSize();
 
@@ -267,6 +282,8 @@ void RiverOutput::loadCustomParametersFromXml(XmlElement* xml) {
 
     ((RiverOutputEditor *) editor.get())->refreshSchemaFromProcessor();
     ((RiverOutputEditor *) editor.get())->refreshLabelsFromProcessor();
+
+    ((RiverOutputEditor *) editor.get())->updateProcessorSchema();
 }
 
 void RiverOutput::setEventSchema(const river::StreamSchema& eventSchema) {
@@ -284,7 +301,7 @@ bool RiverOutput::shouldConsumeSpikes() const {
 
 river::StreamSchema RiverOutput::getSchema() const {
     if (event_schema_) {
-        return *event_schema_;
+        return *event_schema_.get();
     }
     return spike_schema_;
 }

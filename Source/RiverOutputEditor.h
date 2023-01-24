@@ -71,10 +71,10 @@ public:
         return optionsPanel.get();
     }
 
+    void updateProcessorSchema();
+
 private:
     ImageIcon* icon;
-
-    void updateProcessorSchema();
 
     ScopedPointer<Label> hostnameLabel;
     ScopedPointer<Label> hostnameLabelValue;

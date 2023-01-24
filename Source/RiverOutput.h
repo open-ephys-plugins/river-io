@@ -150,6 +150,12 @@ private:
         int32_t unit_index;
         int64_t sample_number;
     } __attribute__((__packed__)) RiverSpike;
+
+    typedef struct RiverEvent {
+        int32_t channel_index;
+        int32_t state;
+        int64_t sample_number;
+    } __attribute__((__packed__)) RiverTTLEvent;
     
     const river::StreamSchema spike_schema_;
 
