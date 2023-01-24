@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "exception": "cpp",
-        "memory": "cpp",
-        "optional": "cpp"
-    }
-}
