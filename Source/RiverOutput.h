@@ -126,6 +126,8 @@ public:
     void clearEventSchema();
     bool shouldConsumeSpikes() const;
 
+    void createStreamName();
+
     river::StreamSchema getSchema() const;
 
     std::string streamName() const;

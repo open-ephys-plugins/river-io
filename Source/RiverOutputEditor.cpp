@@ -306,6 +306,8 @@ void RiverOutputEditor::updateProcessorSchema() {
     } else {
         // Can happen transiently where both are off briefly
     }
+    processor->createStreamName();
+    refreshLabelsFromProcessor();
 }
 
 
@@ -356,10 +358,10 @@ void RiverOutputEditor::refreshSchemaFromProcessor() {
     } else {
         inputTypeSpikeButton->setToggleState(false, dontSendNotification);
         inputTypeEventButton->setToggleState(true, dontSendNotification);
-        schemaList->clearItems();
-        for (const auto& field : processor->getSchema().field_definitions) {
-            schemaList->addItem(field);
-        }
+    }
+    schemaList->clearItems();
+    for (const auto& field : processor->getSchema().field_definitions) {
+        schemaList->addItem(field);
     }
 }
 

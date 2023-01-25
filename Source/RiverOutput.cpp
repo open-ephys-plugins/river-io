@@ -42,13 +42,11 @@ RiverOutput::RiverOutput()
     redis_connection_hostname_ = "127.0.0.1";
     redis_connection_port_ = 6379;
 
-    StringArray streamNames = { "Red", "Green", "Blue", "Orange", "Pink", "Purple" };
-
-	stream_name = (streamNames[random.nextInt(streamNames.size())] + "-" + String(random.nextInt(1000))).toStdString();
-
     // Give some defaults
     writer_max_latency_ms_ = 5;
     writer_max_batch_size_ = 4096;
+
+    createStreamName();
 
 }
 
@@ -60,6 +58,14 @@ RiverOutput::~RiverOutput()
         writer_->Stop();
         delete writer_;
     }
+}
+
+void RiverOutput::createStreamName()
+{
+    StringArray streamNames = { "Red", "Green", "Blue", "Orange", "Pink", "Purple" };
+    stream_name = (streamNames[random.nextInt(streamNames.size())] + "-" + String(random.nextInt(1000))).toStdString();
+
+    createdWriter = false;
 }
 
 bool RiverOutput::testConnection()
@@ -84,7 +90,7 @@ bool RiverOutput::testConnection()
 /** Called when a processor needs to update its settings */
 void RiverOutput::updateSettings()
 {
-    LOGC("Testing connection to Redis database...");
+    LOGD("Testing connection to Redis database...");
     isEnabled = testConnection() && !getDataStreams().isEmpty();
     if (isEnabled) {
         LOGC("Connection to Redis database successful.");
@@ -227,6 +233,11 @@ bool RiverOutput::stopAcquisition()
         writing_thread_->stopThread(1000);
         writing_thread_.reset();
     }
+
+    if (editor) {
+        // GenericEditor#enable isn't marked as virtual, so need to *upcast* to VisualizerEditor :(
+        ((VisualizerEditor *) (editor.get()))->disable();
+    }
     
     return true;
 }
@@ -331,10 +342,12 @@ void RiverOutput::loadCustomParametersFromXml(XmlElement* xml) {
 void RiverOutput::setEventSchema(const river::StreamSchema& eventSchema) {
     auto p = std::make_shared<river::StreamSchema>(eventSchema);
     event_schema_.swap(p);
+    ((RiverOutputEditor *) editor.get())->refreshSchemaFromProcessor();
 }
 
 void RiverOutput::clearEventSchema() {
     event_schema_.reset();
+    ((RiverOutputEditor *) editor.get())->refreshSchemaFromProcessor();
 }
 
 bool RiverOutput::shouldConsumeSpikes() const {
