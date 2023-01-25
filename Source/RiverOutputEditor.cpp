@@ -86,7 +86,7 @@ RiverOutputEditor::RiverOutputEditor(GenericProcessor *parentNode)
     inputTypeSpikeButton->addListener(this);
     optionsPanel->addAndMakeVisible(inputTypeSpikeButton);
 
-    /* -------- Radio group #1: Events (with a custom Schema) --------- */
+    /* -------- Radio group #1: Events (with TTL Schema) --------- */
 
     yPos += 40;
 
@@ -97,6 +97,9 @@ RiverOutputEditor::RiverOutputEditor(GenericProcessor *parentNode)
     inputTypeEventButton->setTooltip("Emit custom events to River with a given schema");
     inputTypeEventButton->addListener(this);
     optionsPanel->addAndMakeVisible(inputTypeEventButton);
+
+    //Disable adding custom event schema for now
+    /*
     yPos += 60;
 
     xPos = LEFT_EDGE;
@@ -108,6 +111,7 @@ RiverOutputEditor::RiverOutputEditor(GenericProcessor *parentNode)
                                         100,
                                         C_TEXT_HT,
                                         optionsPanel);
+
 
     xPos += fieldNameLabel->getBounds().getWidth() + 4;
     fieldTypeLabel = newStaticLabel("Field Type:", xPos, yPos, 80, C_TEXT_HT, optionsPanel);
@@ -135,6 +139,7 @@ RiverOutputEditor::RiverOutputEditor(GenericProcessor *parentNode)
     removeSelectedFieldButton->setRadius(3.0f);
     removeSelectedFieldButton->addListener(this);
     optionsPanel->addAndMakeVisible(removeSelectedFieldButton);
+    */
 
     xPos = LEFT_EDGE;
     yPos += 60;
@@ -199,12 +204,14 @@ RiverOutputEditor::RiverOutputEditor(GenericProcessor *parentNode)
             dynamic_cast<Component *>(inputTypeTitle.get()),
             dynamic_cast<Component *>(inputTypeSpikeButton.get()),
             dynamic_cast<Component *>(inputTypeEventButton.get()),
+            /*
             dynamic_cast<Component *>(fieldNameLabel.get()),
             dynamic_cast<Component *>(fieldNameLabelValue.get()),
             dynamic_cast<Component *>(fieldTypeLabel.get()),
             dynamic_cast<Component *>(fieldTypeComboBox.get()),
             dynamic_cast<Component *>(addFieldButton.get()),
             dynamic_cast<Component *>(removeSelectedFieldButton.get()),
+            */
             dynamic_cast<Component *>(schemaList.get()),
             dynamic_cast<Component *>(streamNameLabel.get()),
             dynamic_cast<Component *>(streamNameLabelValue.get()),
