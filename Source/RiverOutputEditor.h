@@ -86,6 +86,8 @@ private:
     ScopedPointer<Label> passwordLabel;
     ScopedPointer<Label> passwordLabelValue;
 
+    ScopedPointer<UtilityButton> connectButton;
+
     // OPTIONS PANEL
     RiverOutputCanvas* canvas;
     ScopedPointer<Component> optionsPanel;

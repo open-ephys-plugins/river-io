@@ -49,6 +49,7 @@ RiverOutput::RiverOutput()
     // Give some defaults
     writer_max_latency_ms_ = 5;
     writer_max_batch_size_ = 4096;
+
 }
 
 
@@ -58,6 +59,39 @@ RiverOutput::~RiverOutput()
     {
         writer_->Stop();
         delete writer_;
+    }
+}
+
+bool RiverOutput::testConnection()
+{
+    river::RedisConnection connection(
+        redis_connection_hostname_,
+        redis_connection_port_,
+        redis_connection_password_);
+
+    try {
+        river::StreamWriter writer(connection);
+        return true;
+    } catch (const std::exception& e) {
+        LOGC("Failed to connect to Redis: ", e.what());
+        CoreServices::sendStatusMessage("Failed to connect to Redis database.");
+    }
+
+    return false;
+
+}
+
+/** Called when a processor needs to update its settings */
+void RiverOutput::updateSettings()
+{
+    LOGC("Testing connection to Redis database...");
+    isEnabled = testConnection() && !getDataStreams().isEmpty();
+    if (isEnabled) {
+        LOGC("Connection to Redis database successful.");
+        CoreServices::sendStatusMessage("Connection to Redis database successful.");
+    } else {
+        LOGC("Connection to Redis database failed.");
+        CoreServices::sendStatusMessage("Connection to Redis database failed.");
     }
 }
 
@@ -134,9 +168,13 @@ bool RiverOutput::startAcquisition()
         LOGD("River Output Connection: ", redis_connection_hostname_, ":", redis_connection_port_);
 
         try {
-            writer_ = new river::StreamWriter(connection);;
+            writer_ = new river::StreamWriter(connection);
         } catch (const std::exception& e) {
             LOGC("Failed to connect to Redis: ", e.what());
+            CoreServices::sendStatusMessage("Failed to connect to Redis.");
+            CoreServices::setAcquisitionStatus(false);
+            isEnabled = false;
+            CoreServices::updateSignalChain(this->getEditor());
             return false;
         }
 

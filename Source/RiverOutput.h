@@ -79,6 +79,12 @@ public:
     /** Destructor */
     virtual ~RiverOutput();
 
+    /** Called when a processor needs to update its settings */
+    void updateSettings() override;
+
+    /** Test connection to Redis database*/
+    bool testConnection();
+
     /** Searches for events and triggers the River output when appropriate. */
     void process(AudioSampleBuffer &buffer) override;
 

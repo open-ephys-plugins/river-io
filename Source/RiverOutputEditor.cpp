@@ -25,7 +25,7 @@
 #include "SchemaListBox.h"
 
 RiverOutputEditor::RiverOutputEditor(GenericProcessor *parentNode)
-        : VisualizerEditor(parentNode, "River Output", 350) {
+        : VisualizerEditor(parentNode, "River Output", 220) {
 
     hostnameLabel = newStaticLabel("Hostname", 10, 25, 80, 20);
     hostnameLabelValue = newInputLabel("hostnameLabelValue", "Set the hostname for River", 15, 42, 80, 18);
@@ -38,6 +38,11 @@ RiverOutputEditor::RiverOutputEditor(GenericProcessor *parentNode)
     passwordLabel = newStaticLabel("Password", 105, 25, 100, 20);
     passwordLabelValue = newInputLabel("hostnamePasswordValue", "Set the password for River", 110, 42, 100, 18);
     passwordLabelValue->addListener(this);
+
+    connectButton = new UtilityButton("Connect", titleFont);
+    connectButton->setBounds(110, 80, 100, 20);
+    connectButton->addListener(this);
+    addAndMakeVisible(connectButton);
 
     optionsPanel = new Component("River Options Panel");
     // initial bounds, to be expanded
@@ -233,7 +238,12 @@ void RiverOutputEditor::buttonClicked(Button *button) {
         return;
     }
 
-    if (button == addFieldButton) {
+    if (button == connectButton) {
+
+        //getProcessor()->update();
+        CoreServices::updateSignalChain(this);
+
+    } else if (button == addFieldButton) {
         const String &fieldName = fieldNameLabelValue->getText();
         if (fieldName.isEmpty() || fieldTypeComboBox->getSelectedId() <= 0) {
             return;
