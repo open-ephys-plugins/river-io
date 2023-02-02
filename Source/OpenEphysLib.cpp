@@ -48,7 +48,7 @@ extern "C" EXPORT void getLibInfo(Plugin::LibraryInfo* info)
         info->apiVersion = PLUGIN_API_VER;
 
         //Name of the Library, used only for information
-        info->name = "River Output";
+        info->name = "River IO";
 
         //Version of the library, used only for information
         info->libVersion = "0.1.0";
