@@ -8,14 +8,9 @@ This is an Open Ephys GUI plugin that streams spikes and events using the [River
 
 This plugin can be added via the Open Ephys GUI's built-in Plugin Installer. Press **ctrl-P** or **⌘P** to open the Plugin Installer, browse to "River IO", and click the "Install" button. The River IO plugin should now be available to use.
 
-### Dependencies (automatically installed at build time)
-
-- [River](https://pbotros.github.io/river/docs/intro.html) - shared lib for Windows is included with this plugin
-- [Redis](https://redis.io/) - shared lib for Windows is included with this plugin
-
 ## Usage
 
-The plugin must be able to communicate with a Redis database. On Windows, this must be run using Windows Subsystem for Linux. Installation instructions can be found here: https://redis.io/docs/getting-started/installation/install-redis-on-windows/
+Instructions for using the River IO Plugin are available [here](https://open-ephys.github.io/gui-docs/User-Manual/Plugins/River-Output.html)
 
 ## Building from source
 
@@ -37,6 +32,11 @@ Code
 │       ├── Source
 │       └── ...
 ```
+
+### Dependencies (automatically installed at build time)
+
+- [River](https://pbotros.github.io/river/docs/intro.html) - shared lib for Windows is included with this plugin
+- [Redis](https://redis.io/) - shared lib for Windows is included with this plugin
 
 ### Windows
 
