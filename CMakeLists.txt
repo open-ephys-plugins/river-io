@@ -81,7 +81,7 @@ elseif(APPLE)
 	"-undefined dynamic_lookup -rpath @loader_path/../../../../shared-api8")
 
 	install(TARGETS ${PLUGIN_NAME} DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/plugins-api8)
-	set(CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/macos)
+	set(CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/macos/x86_64)
 endif()
 
 #create filters for vs and xcode
@@ -106,4 +106,6 @@ target_link_libraries(${PLUGIN_NAME} ${REDIS_LIB})
 # Install runtime dependencies
 if (MSVC)
 	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libs/windows/bin/ DESTINATION ${GUI_BIN_DIR}/shared FILES_MATCHING PATTERN "*.dll")
+elseif(APPLE)
+	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libs/macos/x86_64/bin/ DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8 FILES_MATCHING PATTERN "*.dylib")
 endif()

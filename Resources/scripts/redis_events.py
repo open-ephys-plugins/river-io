@@ -5,7 +5,7 @@ r = river.StreamReader(river.RedisConnection("127.0.0.1", 6379))
 
 # The initialize() call accepts a timeout in milliseconds for the maximum amount
 # of time to wait for the stream to be created, if it is not already.
-r.initialize("Red-563", 10000)
+r.initialize("Green-813", 10000)
 
 # Here, we'll read one sample at a time, and print it out. The number of samples
 # read per invocation is decided by the size of the buffer passed in, so in this

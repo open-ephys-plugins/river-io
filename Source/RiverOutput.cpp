@@ -118,6 +118,8 @@ void RiverOutput::handleSpike(SpikePtr spike)
     river_spike.sample_number = spike->getSampleNumber();
     river_spike.unit_index = spike->getSortedId();
 
+    LOGC("Spike: ", river_spike.channel_index, " ", river_spike.unit_index, " ", river_spike.sample_number);
+
     if (writing_thread_) {
         writing_thread_->enqueue(reinterpret_cast<const char *>(&river_spike), 1);
     } else {
@@ -135,6 +137,8 @@ void RiverOutput::handleTTLEvent(TTLEventPtr event)
     river_event.channel_index = event->getChannelIndex();
     river_event.state = (ttl->getLine() + 1) * (ttl->getState() ? 1 : -1);
     river_event.sample_number = event->getSampleNumber();
+
+    LOGC("Event: ", river_event.channel_index, " ", river_event.state, " ", river_event.sample_number);
 
     if (writing_thread_) {
         writing_thread_->enqueue(reinterpret_cast<const char *>(&river_event), 1);

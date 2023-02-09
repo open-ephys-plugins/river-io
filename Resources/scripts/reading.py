@@ -5,7 +5,7 @@ r = river.StreamReader(river.RedisConnection("127.0.0.1", 6379))
 
 # The initialize() call accepts a timeout in milliseconds for the maximum amount
 # of time to wait for the stream to be created, if it is not already.
-r.initialize("Purple-407", 10000)
+r.initialize("Red-769", 10000)
 
 # Here, we'll read one sample at a time, and print it out. The number of samples
 # read per invocation is decided by the size of the buffer passed in, so in this
@@ -29,7 +29,7 @@ with r:
     # be checked. -1 is returned once EOF is encountered.
     num_read = r.read(data, 100)
     if num_read > 0:
-      print(f"Spike on electrode {data['channel_index']} at {data['sample_number']}")
+      print(f"Spike on electrode {data['channel_index']} unit {data['unit_index']} at {data['sample_number']}")
     elif num_read == 0:
       continue
     else:
